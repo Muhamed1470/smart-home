@@ -21,11 +21,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   8 .debug_frame  00000120  00000000  00000000  0000275c  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    00000593  00000000  00000000  0000287c  2**0
+  9 .debug_str    000005dd  00000000  00000000  0000287c  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    000009ed  00000000  00000000  00002e0f  2**0
+ 10 .debug_loc    000009ed  00000000  00000000  00002e59  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 00000080  00000000  00000000  000037fc  2**0
+ 11 .debug_ranges 00000080  00000000  00000000  00003846  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -380,7 +380,7 @@ int main(void)
  258:	80 ed       	ldi	r24, 0xD0	; 208
  25a:	91 e0       	ldi	r25, 0x01	; 1
  25c:	0e 94 ce 01 	call	0x39c	; 0x39c <muart_sendStream>
-			goto START; //goto start in order to show the messages above again
+			goto START; //goto start in order to show the messages above again in case of the user pressed again
  260:	43 cf       	rjmp	.-378    	; 0xe8 <main+0x66>
 
 00000262 <mdio_setPinStatus>:
@@ -694,12 +694,6 @@ void mspi_masterSendRecv(u8_t au8_sendData, u8_t* au8_recvData)
  37e:	08 95       	ret
 
 00000380 <muart_init>:
-		
-		/*Wait until the transmission is completed*/
-		while(GET_BIT(MUART_UCSRA, 6) == 0);
-		
-		/*Clearing the TXC bit*/
-		SET_BIT(MUART_UCSRA, 6);
  380:	1b b8       	out	0x0b, r1	; 11
  382:	28 e1       	ldi	r18, 0x18	; 24
  384:	2a b9       	out	0x0a, r18	; 10
@@ -710,75 +704,31 @@ void mspi_masterSendRecv(u8_t au8_sendData, u8_t* au8_recvData)
  38e:	08 95       	ret
 
 00000390 <muart_recvByte>:
-
-
-void muart_recvByte(u8_t* pu8_dataByte)
-{
-	/*Checking if there's any received data or not*/
-	if(GET_BIT(MUART_UCSRA, 7))
  390:	5f 9b       	sbis	0x0b, 7	; 11
  392:	03 c0       	rjmp	.+6      	; 0x39a <muart_recvByte+0xa>
-	{
-		/*Getting the received byte*/
-		*pu8_dataByte = MUART_UDR;
  394:	2c b1       	in	r18, 0x0c	; 12
  396:	fc 01       	movw	r30, r24
  398:	20 83       	st	Z, r18
  39a:	08 95       	ret
 
 0000039c <muart_sendStream>:
-	
-	return;
-}
-
-void muart_sendStream(u8_t* pu8_dataStream, u8_t au8_dataSize)
-{
  39c:	fc 01       	movw	r30, r24
-	/*Looping over data bytes*/
-	while(au8_dataSize--)
  39e:	0b c0       	rjmp	.+22     	; 0x3b6 <muart_sendStream+0x1a>
-	{
-		/*Check whether the UART data register is empty or not*/
-		if(GET_BIT(MUART_UCSRA, 5))
  3a0:	5d 9b       	sbis	0x0b, 5	; 11
  3a2:	08 c0       	rjmp	.+16     	; 0x3b4 <muart_sendStream+0x18>
-		{
-			/*Setting the byte that will be sent*/
-			MUART_UDR = *pu8_dataStream;
  3a4:	80 81       	ld	r24, Z
  3a6:	8c b9       	out	0x0c, r24	; 12
-		
-			/*Wait until the transmission is completed*/
-			while(GET_BIT(MUART_UCSRA, 6) == 0);
  3a8:	5e 9b       	sbis	0x0b, 6	; 11
  3aa:	fe cf       	rjmp	.-4      	; 0x3a8 <muart_sendStream+0xc>
-		
-			/*Clearing the TXC bit*/
-			SET_BIT(MUART_UCSRA, 6);
  3ac:	2b b1       	in	r18, 0x0b	; 11
  3ae:	20 64       	ori	r18, 0x40	; 64
  3b0:	2b b9       	out	0x0b, r18	; 11
-			
-			/*Increasing the pointer address*/
-			pu8_dataStream++;
  3b2:	31 96       	adiw	r30, 0x01	; 1
  3b4:	69 2f       	mov	r22, r25
-}
-
-void muart_sendStream(u8_t* pu8_dataStream, u8_t au8_dataSize)
-{
-	/*Looping over data bytes*/
-	while(au8_dataSize--)
  3b6:	9f ef       	ldi	r25, 0xFF	; 255
  3b8:	96 0f       	add	r25, r22
  3ba:	61 11       	cpse	r22, r1
  3bc:	f1 cf       	rjmp	.-30     	; 0x3a0 <muart_sendStream+0x4>
-			
-		}			
-	}
-	
-	return;
-}
  3be:	08 95       	ret
 
 000003c0 <_exit>:

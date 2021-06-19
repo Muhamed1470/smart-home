@@ -90,7 +90,7 @@ int main(void)
 		else if(uart_recivedByte!= '-' ) //If the received byte is not '1' or '2' or '3' or '4' or '5' or '6'
 		{
 			muart_sendStream((u8_t*)"\r\rWRONG ENTERY\r\r",16); // Message to be shown on the mobile device
-			goto START; //goto start in order to show the messages above again
+			goto START; //goto start in order to show the messages above again in case of the user pressed again
 		}
     }
 	return 0;
